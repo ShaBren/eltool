@@ -6,6 +6,11 @@ from gifplayer import GIFPlayer
 from functools import partial as bind
 from tkinter import filedialog
 
+try:
+	import winsound
+except:
+	winsound = None
+
 
 class ELTool:
 	partID = 176925
@@ -13,6 +18,7 @@ class ELTool:
 	donationsQueue = []
 	player_win = None
 	player = None
+	wav_file = None
 	total = 0.0
 
 	def __init__( self ):
@@ -23,14 +29,16 @@ class ELTool:
 		self.player_id_label = tkinter.Label( self.root, text="ID" )
 		self.player_id_entry = tkinter.Entry( self.root, width=10 )
 		self.pick_gif_button = tkinter.Button( self.root, text="Pick GIF", command=self.pick_gif )
+		self.pick_wav_button = tkinter.Button( self.root, text="Pick WAV", command=self.pick_wav )
 
 		self.player_id_entry.insert( 0, str( self.partID ) )
 
 		self.pick_gif_button.grid( column=0, row=0 )
-		self.start_button.grid( column=1, row=0 )
+		self.pick_wav_button.grid( column=1, row=0 )
 		self.player_id_label.grid( column=0, row=1 )
 		self.player_id_entry.grid( column=1, row=1 )
 		self.test_button.grid( column=0, row=2 )
+		self.start_button.grid( column=1, row=2 )
 
 		self.root.mainloop()
 
@@ -67,7 +75,7 @@ class ELTool:
 		self.player_win.grid_columnconfigure( 0, weight=1 )
 		self.player_win.grid_rowconfigure( 0, weight=1 )
 
-		self.player = GIFPlayer( self.player_win, self.filename )
+		self.player = GIFPlayer( self.player_win, self.gif_file )
 
 		self.check_donations()
 		self.check_queue()
@@ -75,6 +83,9 @@ class ELTool:
 	def play_anim( self, text ):
 		if self.player:
 			self.player.play( text, self.check_queue )
+
+		if winsound and self.wav_file:
+			winsound.PlaySound( self.wav_file, winsound.SND_ASYNC )
 	
 	def check_queue( self ):
 		if len( self.donationsQueue ) > 0:
@@ -83,8 +94,12 @@ class ELTool:
 			self.root.after( 1000, self.check_queue )
 
 	def pick_gif( self ):
-		self.filename = filedialog.askopenfilename( filetypes=[("GIF", "*.gif"), ], initialdir="." )
-		if self.filename:
+		self.gif_file = filedialog.askopenfilename( filetypes=[("GIF", "*.gif"), ], initialdir="." )
+		if self.gif_file:
 			self.start_button.config( state=tkinter.NORMAL )
+
+	def pick_wav( self ):
+		self.wav_file = filedialog.askopenfilename( filetypes=[("WAV", "*.wav"), ], initialdir="." )
+
 
 tool = ELTool()
