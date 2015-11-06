@@ -9,20 +9,22 @@ class GIFPlayer( Canvas ):
 	def __init__( self, parent, filename ):
 		im = Image.open(filename)
 		seq =  []
+		self.frames = []
+
 		try:
 			while 1:
-				seq.append(im.copy())
+				seq.append(im.convert('RGB'))
 				im.seek(len(seq))
 		except EOFError:
 			pass
+
+		for image in seq:
+			self.frames.append(ImageTk.PhotoImage(image))
 
 		try:
 			self.delay = im.info['duration']
 		except KeyError:
 			self.delay = 100
-
-		first = seq[0].convert('RGBA')
-		self.frames = [ImageTk.PhotoImage(first)]
 
 		width, height = im.size
 
@@ -32,17 +34,9 @@ class GIFPlayer( Canvas ):
 		self.grid( row=0, column=0, sticky=NSEW )
 
 		self.image_id = self.create_image( ( width/2, height/2 ), image=self.frames[0], state=HIDDEN )
-		self.text_id = self.create_text( ( width/2, height/2 ), state=HIDDEN, font=( "Ariel", 20 ), fill='#ffffff', width=width, justify=CENTER )
-
-		temp = seq[0]
-
-		for image in seq[1:]:
-			temp.paste(image)
-			frame = temp.convert('RGBA')
-			self.frames.append(ImageTk.PhotoImage(frame))
+		self.text_id = self.create_text( ( width/2, height/2 ), state=HIDDEN, font=( "Arial", 20 ), fill='#ffffff', width=width, justify=CENTER )
 
 		self.idx = 0
-
 
 	def play( self, text, on_complete ):
 		self.itemconfig( self.image_id, state=NORMAL )
@@ -58,6 +52,15 @@ class GIFPlayer( Canvas ):
 			self.stop()
 		else:
 			self.cancel = self.after( self.delay, self.next_frame )
+
+	def set_font( self, name, size ):
+		self.itemconfig( self.text_id, font=( name, size ) )
+
+	def set_text_color( self, color ):
+		self.itemconfig( self.text_id, fill=color )
+
+	def set_background_color( self, color ):
+		self.config( background=color )
 
 	def stop( self ):
 		self.idx = 0
